@@ -100,5 +100,20 @@ def step_kmeans():
     plot = create_plot(kmeans.data, assignment=assignment, centers=current_centroids)
     return jsonify(plot=plot)
 
+@app.route('/reset-algorithm', methods=['POST'])
+def reset_algorithm():
+    global kmeans, current_centroids
+    if kmeans is None:
+        return jsonify(error="KMeans not initialized"), 400
+    
+    # Reset the KMeans object without changing the data
+    num_clusters = kmeans.k
+    kmeans = KMeans(kmeans.data, num_clusters)
+    current_centroids = None
+    
+    # Create plot with the reset state (no assignments, no centroids)
+    plot = create_plot(kmeans.data)
+    return jsonify(plot=plot)
+
 if __name__ == '__main__':
     app.run(debug=True)

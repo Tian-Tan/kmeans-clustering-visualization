@@ -15,7 +15,7 @@
 
         <div class="form-group">
             <label for="numClusters">Number of Clusters (k):</label>
-            <input type="number" class="form-control w-25 mx-auto" id="numClusters" placeholder="Enter number of clusters" value="3">
+            <input type="number" class="form-control w-25 mx-auto" id="numClusters" placeholder="Enter number of clusters" value="3" min="1" max="10" required>
         </div>
 
         <div class="form-group">
@@ -26,8 +26,8 @@
             </select>
         </div>
 
-        <button class="btn btn-secondary my-2" id="stepThrough">Step Through KMeans</button>
-        <button class="btn btn-secondary my-2" id="runConvergence">Run to Convergence</button><br>
+        <button class="btn btn-primary my-2" id="stepThrough">Step Through KMeans</button>
+        <button class="btn btn-primary my-2" id="runConvergence">Run to Convergence</button><br>
         <button class="btn btn-primary my-2" id="generateDataset">Generate New Dataset</button>
         <button class="btn btn-danger my-2" id="resetAlgorithm">Reset Algorithm</button>
 
@@ -69,9 +69,48 @@
             });
         };
 
+        function runToConvergence() {
+            function runStep() {
+                fetch('/step-kmeans', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        const plotData = JSON.parse(data.plot);
+                        Plotly.newPlot('plot', plotData.data, plotData.layout);
+                        // If no error, continue with the next step
+                        setTimeout(runStep, 100);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+            runStep();
+        };
+
+        function resetAlgorithm() {
+            fetch('/reset-algorithm', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const plotData = JSON.parse(data.plot);
+                    Plotly.newPlot('plot', plotData.data, plotData.layout);
+                }
+            });
+        };
         // Event listeners for buttons
         document.getElementById('generateDataset').addEventListener('click', generatePlot);
         document.getElementById('stepThrough').addEventListener('click', stepKMeans);
+        document.getElementById('runConvergence').addEventListener('click', runToConvergence);
+        document.getElementById('resetAlgorithm').addEventListener('click', resetAlgorithm);
 
         // Generate initial plot on page load
         generatePlot();
