@@ -21,8 +21,10 @@
         <div class="form-group">
             <label for="initMethod">Initialization Method:</label>
             <select class="form-control w-25 mx-auto" id="initMethod">
-                <option>Random</option>
-                <option>KMeans++</option>
+                <option value="random">Random</option>
+                <option value="farthest_first">Farthest First</option>
+                <option value="kmeans++">KMeans++</option>
+                <option value="manual">Manual</option>
             </select>
         </div>
 
@@ -38,13 +40,14 @@
         // Fetch dataset from Flask server and plot
         const generatePlot = () => {
             const numClusters = document.getElementById('numClusters').value;
+            const initMethod = document.getElementById('initMethod').value;
 
             fetch('/generate-data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ numClusters: numClusters })
+                body: JSON.stringify({ numClusters: numClusters, initMethod: initMethod })
             })
             .then(response => response.json())
             .then(data => {
@@ -55,8 +58,13 @@
 
         // Step through the KMeans algorithm
         const stepKMeans = () => {
+            const initMethod = document.getElementById('initMethod').value;
             fetch('/step-kmeans', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ initMethod: initMethod })
             })
             .then(response => response.json())
             .then(data => {
@@ -70,9 +78,14 @@
         };
 
         function runToConvergence() {
+            const initMethod = document.getElementById('initMethod').value;
             function runStep() {
                 fetch('/step-kmeans', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ initMethod: initMethod })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -93,8 +106,13 @@
         };
 
         function resetAlgorithm() {
+            const initMethod = document.getElementById('initMethod').value;
             fetch('/reset-algorithm', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ initMethod: initMethod })
             })
             .then(response => response.json())
             .then(data => {
@@ -105,7 +123,7 @@
                     Plotly.newPlot('plot', plotData.data, plotData.layout);
                 }
             });
-        };
+        }
         // Event listeners for buttons
         document.getElementById('generateDataset').addEventListener('click', generatePlot);
         document.getElementById('stepThrough').addEventListener('click', stepKMeans);

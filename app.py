@@ -72,13 +72,12 @@ def index():
 def generate_data():
     global current_data, current_centroids, kmeans
     num_clusters = int(request.json.get('numClusters', 3))  # Default to 3 clusters if not provided
-
+    init_method = request.json.get('initMethod', 'random')
     # Generate new dataset
     current_data = generate_random_data()
 
     # Initialize KMeans object with new data and num_clusters
-    kmeans = KMeans(current_data, num_clusters)
-
+    kmeans = KMeans(current_data, num_clusters, init_method=init_method)
     # Create plot with the initial centroids
     plot = create_plot(current_data)
     return jsonify(plot=plot)
@@ -86,32 +85,32 @@ def generate_data():
 @app.route('/step-kmeans', methods=['POST'])
 def step_kmeans():
     global kmeans, current_centroids
+    init_method = request.json.get('initMethod', 'random')
     if kmeans is None:
         return jsonify(error="KMeans not initialized"), 400
-
-    # Perform one step of the KMeans algorithm
+    if kmeans.centers is None:
+        kmeans.init_method = init_method  # Update the init_method
+        kmeans.centers = kmeans.initialize_centers()
+    
     step_result = kmeans.step()
     if step_result is None:
         return jsonify(error="KMeans algorithm has converged"), 200
-
-    current_centroids, assignment = step_result
     
-    # Create the plot with updated centroids and assignments
+    current_centroids, assignment = step_result
     plot = create_plot(kmeans.data, assignment=assignment, centers=current_centroids)
     return jsonify(plot=plot)
 
 @app.route('/reset-algorithm', methods=['POST'])
 def reset_algorithm():
     global kmeans, current_centroids
+    init_method = request.json.get('initMethod', 'random')
+    
     if kmeans is None:
         return jsonify(error="KMeans not initialized"), 400
     
-    # Reset the KMeans object without changing the data
-    num_clusters = kmeans.k
-    kmeans = KMeans(kmeans.data, num_clusters)
+    kmeans = KMeans(kmeans.data, kmeans.k, init_method=init_method)
     current_centroids = None
     
-    # Create plot with the reset state (no assignments, no centroids)
     plot = create_plot(kmeans.data)
     return jsonify(plot=plot)
 
