@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KMeans Clustering Algorithm</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>KMeans Clustering Algorithm</h1>
+
+        <div class="form-group">
+            <label for="numClusters">Number of Clusters (k):</label>
+            <input type="number" class="form-control w-25 mx-auto" id="numClusters" placeholder="Enter number of clusters" value="3">
+        </div>
+
+        <div class="form-group">
+            <label for="initMethod">Initialization Method:</label>
+            <select class="form-control w-25 mx-auto" id="initMethod">
+                <option>Random</option>
+                <option>KMeans++</option>
+            </select>
+        </div>
+
+        <button class="btn btn-secondary my-2" id="stepThrough">Step Through KMeans</button>
+        <button class="btn btn-secondary my-2" id="runConvergence">Run to Convergence</button><br>
+        <button class="btn btn-primary my-2" id="generateDataset">Generate New Dataset</button>
+        <button class="btn btn-danger my-2" id="resetAlgorithm">Reset Algorithm</button>
+
+        <div id="plot"></div>
+    </div>
+
+    <script>
+        // Fetch dataset from Flask server and plot
+        const generatePlot = () => {
+            const numClusters = document.getElementById('numClusters').value;
+
+            fetch('/generate-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ numClusters: numClusters })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const plotData = JSON.parse(data.plot);
+                Plotly.newPlot('plot', plotData.data, plotData.layout);
+            });
+        };
+
+        // Step through the KMeans algorithm
+        const stepKMeans = () => {
+            fetch('/step-kmeans', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const plotData = JSON.parse(data.plot);
+                    Plotly.newPlot('plot', plotData.data, plotData.layout);
+                }
+            });
+        };
+
+        // Event listeners for buttons
+        document.getElementById('generateDataset').addEventListener('click', generatePlot);
+        document.getElementById('stepThrough').addEventListener('click', stepKMeans);
+
+        // Generate initial plot on page load
+        generatePlot();
+    </script>
+
+</body>
+</html>

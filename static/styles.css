@@ -1,0 +1,30 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    margin-top: 50px;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 30px;
+}
+
+#plot {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.plot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;  /* Adjust as needed */
+}
+
+svg {
+    margin: 0 auto; /* Ensure the SVG inside the Plotly plot is centered */
+}
