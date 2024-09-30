@@ -5,6 +5,7 @@ import plotly
 import plotly.graph_objs as go
 import json
 from algorithm import KMeans  # Assuming the modified KMeans class is in algorithm.py
+import argparse
 
 app = Flask(__name__)
 
@@ -119,4 +120,7 @@ def reset_algorithm():
     return jsonify(plot=plot)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=3000, help='Port to run the app on')
+    args = parser.parse_args()
+    app.run(debug=True, host='0.0.0.0', port=args.port)
