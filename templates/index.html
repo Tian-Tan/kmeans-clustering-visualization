@@ -37,6 +37,35 @@
     </div>
 
     <script>
+        function setupPlotlyClickEvent() {
+            const plot = document.getElementById('plot');
+            plot.on('plotly_click', function(data) {
+                if (isManualSelectionActive) {
+                    const numClusters = parseInt(document.getElementById('numClusters').value);
+                    const point = data.points[0];
+                    manualCentroids.push([point.x, point.y]);
+
+                    // Update plot to show selected centroid
+                    Plotly.addTraces('plot', {
+                        x: [point.x],
+                        y: [point.y],
+                        mode: 'markers',
+                        marker: {
+                            color: 'red',
+                            symbol: 'x',
+                            size: 12,
+                            line: {width: 2}
+                        },
+                        name: 'Selected Centroid'
+                    });
+
+                    if (manualCentroids.length === numClusters) {
+                        isManualSelectionActive = false;
+                        alert('All centroids selected. You can now step through or run to convergence.');
+                    }
+                }
+            });
+        }
         // Fetch dataset from Flask server and plot
         const generatePlot = () => {
             const numClusters = document.getElementById('numClusters').value;
@@ -52,7 +81,12 @@
             .then(response => response.json())
             .then(data => {
                 const plotData = JSON.parse(data.plot);
-                Plotly.newPlot('plot', plotData.data, plotData.layout);
+                Plotly.newPlot('plot', plotData.data, plotData.layout).then(() => {
+                    setupPlotlyClickEvent();  // Set up the click event after plot is created
+                    if (initMethod === 'manual') {
+                        enableManualSelection();
+                    }
+                });
             });
         };
 
@@ -64,7 +98,10 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ initMethod: initMethod })
+                body: JSON.stringify({ 
+                    initMethod: initMethod,
+                    manualCentroids: initMethod === 'manual' ? manualCentroids : null
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -132,6 +169,28 @@
 
         // Generate initial plot on page load
         generatePlot();
+
+        let manualCentroids = [];
+        let isManualSelectionActive = false;
+
+        function enableManualSelection() {
+            if (document.getElementById('initMethod').value === 'manual') {
+                isManualSelectionActive = true;
+                manualCentroids = [];
+                // Reset the plot to remove any previously selected centroids
+                const plotData = JSON.parse(document.getElementById('plot').data);
+                Plotly.newPlot('plot', plotData.data, plotData.layout).then(() => {
+                    setupPlotlyClickEvent();  // Re-setup the click event
+                });
+                alert('Click on the plot to select initial centroids. Select ' + document.getElementById('numClusters').value + ' points.');
+            } else {
+                isManualSelectionActive = false;
+            }
+        }
+
+        document.getElementById('initMethod').addEventListener('change', enableManualSelection);
+
+
     </script>
 
 </body>

@@ -17,9 +17,8 @@ class KMeans:
         elif self.init_method == 'kmeans++':
             return self.kmeans_plus_plus_init()
         elif self.init_method == 'manual':
-            # For manual initialization, you'll need to implement a mechanism to get user input
-            # For now, we'll use random initialization as a placeholder
-            return self.random_init()
+            # Manual initialization is handled in the Flask route
+            return self.centers
         else:
             raise ValueError("Invalid initialization method")
 
@@ -27,10 +26,14 @@ class KMeans:
         return self.data[np.random.choice(len(self.data), size=self.k, replace=False)]
 
     def farthest_first_init(self):
+        # Choose the first centroid randomly
         centers = [self.data[np.random.choice(len(self.data))]]
         while len(centers) < self.k:
-            distances = np.array([min([self.dist(c, x) for c in centers]) for x in self.data])
-            centers.append(self.data[np.argmax(distances)])
+            # Compute distances from each point to its nearest center
+            distances = np.min([np.linalg.norm(self.data - c, axis=1) for c in centers], axis=0)
+            # Choose the point with maximum distance as the next center
+            new_center_index = np.argmax(distances)
+            centers.append(self.data[new_center_index])
         return np.array(centers)
 
     def kmeans_plus_plus_init(self):

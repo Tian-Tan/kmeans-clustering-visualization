@@ -86,11 +86,15 @@ def generate_data():
 def step_kmeans():
     global kmeans, current_centroids
     init_method = request.json.get('initMethod', 'random')
+    manual_centroids = request.json.get('manualCentroids')
     if kmeans is None:
         return jsonify(error="KMeans not initialized"), 400
     if kmeans.centers is None:
         kmeans.init_method = init_method  # Update the init_method
-        kmeans.centers = kmeans.initialize_centers()
+        if init_method == 'manual' and manual_centroids:
+            kmeans.centers = np.array(manual_centroids)
+        else:
+            kmeans.centers = kmeans.initialize_centers()
     
     step_result = kmeans.step()
     if step_result is None:
