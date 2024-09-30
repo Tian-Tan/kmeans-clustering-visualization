@@ -20,7 +20,7 @@ install:
 
 # Run the Flask application
 run:
-	. $(VENV_ACTIVATE) && $(PYTHON) $(APP) --port $(PORT)
+	python app.py
 
 # Clean up
 clean:
